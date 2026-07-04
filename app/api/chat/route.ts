@@ -72,6 +72,8 @@ export async function POST(req: NextRequest) {
     );
 
     if (!res.ok) {
+      const errorBody = await res.text().catch(() => '');
+      console.error(`[HeritageHop] /api/chat Gemini request failed: ${res.status} ${errorBody.slice(0, 500)}`);
       return NextResponse.json({
         reply: mockChatReply(parsed.data.message, parsed.data.context?.city),
         grounded: false,
