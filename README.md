@@ -177,6 +177,16 @@ npm run build     # production build (type-checks + lints + compiles)
 - [x] Timeouts on all external fetches
 - [x] Generic error messages to clients; detailed errors only in server logs
 
+## Demo login credentials
+
+The `/admin` route uses a demo-only mock login (not real authentication — see [Security mechanisms](#security-mechanisms)). Current password, read from `ADMIN_DEMO_PASSWORD` in `.env`:
+
+```
+Password: heritage-demo-2026
+```
+
+If the admin login rejects this password, check `ADMIN_DEMO_PASSWORD` in `.env` — this doc is not auto-synced, so update it here too if you rotate the password.
+
 ## Demo script (for judges)
 
 1. Open HeritageHop → click **"Explore Demo: Jaipur."**
@@ -187,7 +197,7 @@ npm run build     # production build (type-checks + lints + compiles)
 6. Scroll to **Authentic Cultural Experiences**, click "Ask AI for Details" on a card — watch it populate the chatbot panel.
 7. In the chatbot, ask **"Make this itinerary more senior-friendly"** and show the AI response.
 8. Click **"Regenerate with different style"** to show plan variability.
-9. Visit `/admin`, log in with the demo password, show the "Coming Soon" dashboard cards.
+9. Visit `/admin`, log in with the demo password (see [Demo login credentials](#demo-login-credentials)), show the "Coming Soon" dashboard cards.
 
 ## Future improvements
 
