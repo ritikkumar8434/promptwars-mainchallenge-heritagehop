@@ -11,7 +11,9 @@ const OPENROUTER_ENDPOINT = 'https://openrouter.ai/api/v1/chat/completions';
 // "reasoning" output before the actual JSON. deepseek-chat-v3-0324 is a
 // non-reasoning paid-but-near-zero-cost model (~$0.002/request at this
 // schema's size) that reliably returns clean, schema-conformant JSON in ~3s.
-const OPENROUTER_MODEL = 'deepseek/deepseek-chat-v3-0324';
+//const OPENROUTER_MODEL = 'deepseek/deepseek-chat-v3-0324';
+const OPENROUTER_MODEL = 'deepseek/deepseek-chat';
+
 // Measured ~1-3s in isolation, but shared-infra latency varies — 10s
 // clipped a real request under load, so this has headroom built in.
 const REQUEST_TIMEOUT_MS = 18_000;

@@ -8,11 +8,11 @@ import { normalizeTravelPlanOutput } from './normalize';
 // models periodically via GET /v1beta/models if this starts 404ing again.
 const GEMINI_MODEL = 'gemini-2.5-flash';
 const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
-// This schema is large enough that generation genuinely takes ~24-28s even
-// with thinking disabled — measured directly against the live API. Kept
-// under 30s so the full Gemini→OpenRouter→Groq chain fits inside a 60s
-// Vercel function budget (see maxDuration in app/api/plan/route.ts).
-const REQUEST_TIMEOUT_MS = 30_000;
+// This schema is large enough that generation genuinely takes ~24-32s even
+// with thinking disabled — measured directly against the live API, with
+// enough variance that 30s clipped a real request. See maxDuration in
+// app/api/plan/route.ts for how this fits the overall chain's time budget.
+const REQUEST_TIMEOUT_MS = 40_000;
 
 // Thrown for conditions the orchestrator should treat as "try the next
 // provider" rather than surfacing directly to the user.

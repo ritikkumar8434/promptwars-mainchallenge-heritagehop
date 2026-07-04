@@ -7,8 +7,8 @@ import { generateTravelPlanWithFallback } from '@/lib/ai/provider';
 import type { TravelPlanOutput } from '@/types/travel';
 
 export const runtime = 'nodejs';
-// The full Gemini(30s)→OpenRouter(18s)→Groq(8s) fallback chain can take up
-// to ~62s in the worst case (all providers failing/timing out) plus
+// The full Gemini(40s)→OpenRouter(18s)→Groq(8s) fallback chain can take up
+// to ~72s in the worst case (all providers failing/timing out) plus
 // grounding fetches — default Vercel function timeouts (10s) would kill
 // this mid-request, so it's extended explicitly with headroom.
 export const maxDuration = 90;

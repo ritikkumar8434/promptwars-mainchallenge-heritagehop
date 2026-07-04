@@ -8,6 +8,7 @@ import { buildGroundingBundle } from '../lib/ai/grounding';
 import { guardUserText } from '../lib/security/prompt-guard';
 import { checkRateLimit } from '../lib/security/rate-limit';
 import { findClosestCity, INDIA_DESTINATIONS } from '../lib/data/india-destinations';
+import { normalizeTravelPlanOutput } from '../lib/ai/normalize';
 
 let passed = 0;
 let failed = 0;
@@ -76,6 +77,36 @@ async function main() {
   assert(plan.itinerary.length === parsedInput.durationDays, 'itinerary has one entry per requested day');
   assert(plan.fallbackUsed === true, 'mock provider correctly marks fallbackUsed as true');
   assert(plan.hiddenGems.every((g) => g.whyHidden.length > 0), 'every hidden gem explains why it is hidden');
+
+  console.log('\n6. AI output normalization (recovers common LLM formatting slips)');
+  const messyOutput = {
+    city: 'Jaipur',
+    title: 'Test',
+    overview: 'Test overview',
+    bestFor: 'Friends', // should become an array
+    attractions: [],
+    hiddenGems: [],
+    itinerary: [{ day: 1, title: 'Day 1', summary: 's', morning: [], afternoon: [], evening: [], walkingIntensity: 'Moderate (with options to reduce)', notes: '' }],
+    stories: [],
+    localEvents: { name: 'Solo event', category: 'Heritage walk', description: 'd', isSample: true, dateHint: 'x', locationHint: 'x', sourceLabel: 'x' }, // bare object, should become an array
+    experiences: [],
+    food: [{ name: 'Dish', description: 'd', isVegetarian: true, spiceLevel: 'Medium', whereToFind: 'x', priceHint: '₹200-300', culturalNote: '' }],
+    etiquette: [],
+    safety: [],
+    accessibility: [],
+    sustainability: [],
+    chatbotSuggestions: [],
+    confidence: 0.8,
+    sourcesUsed: [],
+    fallbackUsed: false,
+  };
+  const normalized: any = normalizeTravelPlanOutput(messyOutput);
+  assert(Array.isArray(normalized.bestFor), 'coerces a bare string bestFor into an array');
+  assert(Array.isArray(normalized.localEvents) && normalized.localEvents.length === 1, 'wraps a bare localEvents object into a one-item array');
+  assert(normalized.itinerary[0].walkingIntensity === 'Moderate', 'strips decoration from a near-miss walkingIntensity enum value');
+  assert(normalized.food[0].priceHint === 'Medium', 'falls back to a safe enum default for an unparseable priceHint');
+  const normalizedValidation = TravelPlanOutputSchema.safeParse(normalized);
+  assert(normalizedValidation.success, 'normalized messy output now passes the strict schema');
 
   console.log(`\n${passed} passed, ${failed} failed\n`);
   if (failed > 0) process.exit(1);

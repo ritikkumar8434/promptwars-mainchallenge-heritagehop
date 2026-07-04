@@ -19,6 +19,17 @@ function coerceEnum(value: unknown, options: string[], fallback: string): string
   return firstMatch ?? fallback;
 }
 
+// Some models return the string "true"/"false" for boolean fields despite
+// an explicit `: boolean` type in the prompt — observed with Gemini.
+function coerceBoolean(value: unknown, fallback: boolean): boolean {
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'string') {
+    if (value.toLowerCase() === 'true') return true;
+    if (value.toLowerCase() === 'false') return false;
+  }
+  return fallback;
+}
+
 // AI output sometimes returns a single object instead of a one-item array
 // for fields the schema requires to be arrays.
 function ensureArray(value: unknown): unknown[] {
@@ -31,7 +42,11 @@ function ensureArray(value: unknown): unknown[] {
 function normalizePlace(place: unknown): unknown {
   if (!place || typeof place !== 'object') return place;
   const p = place as Record<string, unknown>;
-  return { ...p, budgetLevel: coerceEnum(p.budgetLevel, BUDGET_LEVELS, 'Medium') };
+  return {
+    ...p,
+    budgetLevel: coerceEnum(p.budgetLevel, BUDGET_LEVELS, 'Medium'),
+    confidence: typeof p.confidence === 'number' ? p.confidence : 0.7,
+  };
 }
 
 export function normalizeTravelPlanOutput(raw: unknown): unknown {
@@ -49,7 +64,11 @@ export function normalizeTravelPlanOutput(raw: unknown): unknown {
       return { ...d, walkingIntensity: coerceEnum(d.walkingIntensity, WALKING_INTENSITIES, 'Moderate') };
     }),
     stories: ensureArray(r.stories),
-    localEvents: ensureArray(r.localEvents),
+    localEvents: ensureArray(r.localEvents).map((event) => {
+      if (!event || typeof event !== 'object') return event;
+      const e = event as Record<string, unknown>;
+      return { ...e, isSample: coerceBoolean(e.isSample, true) };
+    }),
     experiences: ensureArray(r.experiences).map((exp) => {
       if (!exp || typeof exp !== 'object') return exp;
       const e = exp as Record<string, unknown>;
@@ -60,6 +79,7 @@ export function normalizeTravelPlanOutput(raw: unknown): unknown {
       const f = item as Record<string, unknown>;
       return {
         ...f,
+        isVegetarian: coerceBoolean(f.isVegetarian, false),
         priceHint: coerceEnum(f.priceHint, BUDGET_LEVELS, 'Medium'),
         spiceLevel: coerceEnum(f.spiceLevel, SPICE_LEVELS, 'Medium'),
       };
